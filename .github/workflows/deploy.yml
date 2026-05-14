@@ -22,9 +22,12 @@ jobs:
         run: npm ci
       - name: Build Quartz
         run: npx quartz build
+      - name: Stage under /docs subpath
+        run: |
+          cd public && mkdir docs && for f in *; do [ "$f" = "docs" ] || mv "$f" docs/; done
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy public --project-name=specter-docs
+          command: pages deploy public --project-name=specter
