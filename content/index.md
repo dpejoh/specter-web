@@ -1,23 +1,62 @@
 ---
-title: Specter Docs
+title: Specter
 description: Keybox management, security spoofing, and detection avoidance for Magisk/KernelSU/APatch
 ---
 
-Welcome to the Specter documentation. Specter is a systemless Magisk/KernelSU/APatch module for keybox management, security spoofing, and detection avoidance — clean, focused, no bloat.
+<div class="hero">
 
-## Quick Start
+# Specter
 
-1. Install any PIF fork such as [Play Integrity Fix](https://github.com/KOWX712/PlayIntegrityFix/releases/latest) or [Play Integrity Fork](https://github.com/osm0sis/PlayIntegrityFork/releases/latest)
-2. Install [Tricky Store](https://github.com/5ec1cff/TrickyStore/releases/latest) or any fork such as [TEESimulator](https://github.com/JingMatrix/TEESimulator)
-3. Install Specter via Magisk / KernelSU / APatch
-4. Open the WebUI and configure as you like
+<p class="hero-subtitle">Keybox management, security spoofing, and detection avoidance. Clean, focused, no bloat.</p>
 
-## Features
+<div class="hero-actions">
+  <a class="hero-button primary" href="/docs/getting-started">Get Started →</a>
+  <a class="hero-button secondary" href="https://github.com/dpejoh/specter">View on GitHub →</a>
+</div>
 
-- **Keybox** — multi-source catalog, custom keybox (file/URL/path), Google revocation checking, private keybox support, backup and restore
-- **Tools** — target.txt, App Targeting (per-app states + blacklist), security patch, TEESimulator support, GMS kill, PIF fix, HMA-OSS / Zygisk Next / RKA configs, detection cleanup, Widevine L1
-- **Control** — per-feature toggles (boot hardening, bootloader spoofer block, ROM spoof blocking, LSPosed clean, recovery hide, action pipeline steps), conflict resolution management
-- **Settings** — theme (dark/light/auto + 9 color presets + Monet), language, dev mode with terminal, project contributors
+</div>
+
+<div class="features">
+
+<div class="feature-card">
+<p class="feature-icon">🔑</p>
+<h3>Keybox Management</h3>
+<p>Multi-source catalog, custom keybox import, Google revocation checking, backup and restore.</p>
+</div>
+
+<div class="feature-card">
+<p class="feature-icon">🛠️</p>
+<h3>Tools</h3>
+<p>target.txt generation, App Targeting, security patch spoofing, GMS kill, PIF fix, HMA-OSS, Zygisk Next, RKA, detection cleanup, Widevine L1.</p>
+</div>
+
+<div class="feature-card">
+<p class="feature-icon">🎛️</p>
+<h3>Control</h3>
+<p>Per-feature toggles for boot hardening, ROM spoof blocking, LSPosed clean, recovery hide, and conflict resolution.</p>
+</div>
+
+<div class="feature-card">
+<p class="feature-icon">🎨</p>
+<h3>Material 3 WebUI</h3>
+<p>Dark/light/auto theme with 9 color presets and Monet dynamic colors. Multi-language support. Developer mode with live terminal.</p>
+</div>
+
+<div class="feature-card">
+<p class="feature-icon">⚡</p>
+<h3>Pipeline System</h3>
+<p>Orchestrated feature execution with idempotent scripts. Full integrity and root hiding pipelines with optional steps.</p>
+</div>
+
+<div class="feature-card">
+<p class="feature-icon">🔒</p>
+<h3>Conflict Resolution</h3>
+<p>Automatic detection of conflicting modules. Aggressive and passive resolution strategies. No interactive prompts during install.</p>
+</div>
+
+</div>
+
+---
 
 ## Requirements
 
@@ -25,8 +64,7 @@ Welcome to the Specter documentation. Specter is a systemless Magisk/KernelSU/AP
 - Tricky Store
 - Play Integrity Fix or any fork (recommended)
 
-## Links
+## Support
 
-- [GitHub Repository](https://github.com/dpejoh/specter)
-- [Releases](https://github.com/dpejoh/specter/releases)
-- [Ko-fi](https://ko-fi.com/dpejoh)
+- [GitHub](https://github.com/dpejoh/specter-web) — source code, issues, releases
+- [Ko-fi](https://ko-fi.com/dpejoh) — support development
