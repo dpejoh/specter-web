@@ -1,8 +1,7 @@
 :root {
-  --vp-c-brand-1: #7c3aed;
-  --vp-c-brand-2: #6d28d9;
-  --vp-c-brand-3: #a78bfa;
-
+  --vp-c-brand-1: #4f46e5;
+  --vp-c-brand-2: #4338ca;
+  --vp-c-brand-3: #818cf8;
   --vp-c-text-1: #18181b;
   --vp-c-text-2: #52525b;
   --vp-c-text-3: #a1a1aa;
@@ -20,10 +19,9 @@
 }
 
 .dark {
-  --vp-c-brand-1: #a78bfa;
-  --vp-c-brand-2: #c4b5fd;
-  --vp-c-brand-3: #7c3aed;
-
+  --vp-c-brand-1: #818cf8;
+  --vp-c-brand-2: #a5b4fc;
+  --vp-c-brand-3: #4f46e5;
   --vp-c-text-1: #e4e4e7;
   --vp-c-text-2: #a1a1aa;
   --vp-c-text-3: #71717a;
@@ -49,7 +47,7 @@
 }
 
 .VPHomeHero .image-src {
-  filter: drop-shadow(0 0 40px rgba(124, 58, 237, 0.3));
+  filter: drop-shadow(0 0 40px rgba(79, 70, 229, 0.3));
 }
 
 .VPButton.brand {
@@ -69,5 +67,5 @@
 
 .VPFeature:hover {
   border-color: var(--vp-c-brand-1);
-  box-shadow: 0 0 20px rgba(124, 58, 237, 0.08);
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.08);
 }
