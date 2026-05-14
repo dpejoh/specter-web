@@ -6,7 +6,7 @@ export default defineConfig({
   base: "/specter-web/",
   cleanUrls: true,
   head: [
-    ["link", { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" }],
+    ["link", { rel: "icon", href: "/specter-web/favicon.svg", type: "image/svg+xml" }],
   ],
   themeConfig: {
     logo: "/ghost.svg",
