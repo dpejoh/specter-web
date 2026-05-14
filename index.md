@@ -5,6 +5,9 @@ hero:
   name: "Specter"
   text: "Keybox management, security spoofing, and detection avoidance"
   tagline: "Clean, focused, no bloat"
+  image:
+    src: /ghost.svg
+    alt: Specter
   actions:
     - theme: brand
       text: Get Started

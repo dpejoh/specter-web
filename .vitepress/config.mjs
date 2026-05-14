@@ -4,7 +4,11 @@ export default defineConfig({
   title: "Specter",
   description: "Keybox management, security spoofing, and detection avoidance",
   cleanUrls: true,
+  head: [
+    ["link", { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" }],
+  ],
   themeConfig: {
+    logo: "/ghost.svg",
     nav: [
       { text: "Home", link: "/" },
       { text: "Docs", link: "/docs/getting-started" },
