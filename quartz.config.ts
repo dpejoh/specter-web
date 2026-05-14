@@ -8,7 +8,7 @@ const config: QuartzConfig = {
     enableSPA: true,
     enablePopovers: true,
     locale: "en-US",
-    baseUrl: "specter-docs.pages.dev",
+    baseUrl: "specter.pages.dev/docs",
     ignorePatterns: ["private", "templates", ".obsidian"],
     defaultDateType: "modified",
     theme: {
