@@ -3,6 +3,7 @@ import { defineConfig } from "vitepress"
 export default defineConfig({
   title: "Specter",
   description: "Keybox management, security spoofing, and detection avoidance",
+  base: "/specter-web/",
   cleanUrls: true,
   head: [
     ["link", { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" }],
