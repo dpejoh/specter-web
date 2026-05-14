@@ -8,7 +8,7 @@ const config: QuartzConfig = {
     enableSPA: true,
     enablePopovers: true,
     locale: "en-US",
-    baseUrl: "specter.netlify.app",
+    baseUrl: "specter.is-a.dev",
     ignorePatterns: ["private", "templates", ".obsidian"],
     defaultDateType: "modified",
     theme: {
