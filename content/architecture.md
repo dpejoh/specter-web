@@ -1,152 +1,90 @@
 ---
 title: Architecture
-description: How Specter is built and how it works
+description: How Specter works — boot flow, pipelines, WebUI, and config
 ---
 
-## Philosophy
+## Boot Flow
 
-- **TypeScript + Vite** for the WebUI (builds MWC + TS into bundled JS)
-- **Runtime bridge detection** — works on KernelSU, APatch (identical `window.ksu`), and Magisk
-- **`@material/web` (MWC)** — Google's official Material 3 Web Components
-- **`ksud module config`** instead of `localStorage` (survives app uninstall)
-- **Dual boot strategy** — `boot-completed.sh` for KernelSU/APatch + `service.sh` with `sys.boot_completed` polling fallback for Magisk
-- **Shared config persistence** — `ksud` with file fallback (works on all root solutions)
-- **Zero CDN dependencies at runtime** — everything bundled locally by Vite
-- **Single shared shell library** (`lib/`) — eliminates all copy-paste
-- **No hardcoded paths** — `$MODDIR` everywhere
+Specter runs at every boot to apply hardening, resolve conflicts, and restore state.
 
-## Directory Layout
-
+### KernelSU / APatch
 ```
-specter/
-├── .github/workflows/
-│   ├── build-test.yml     # CI: lint + build + test
-│   └── build-release.yml  # CI: build, sign, release
-├── src/                   # Source code (developer edits here)
-│   ├── META-INF/          # Magisk installer files
-│   ├── module.prop        # Module metadata
-│   ├── lib/               # Shared shell libraries (5 files)
-│   │   ├── paths.sh       # Path constants
-│   │   ├── urls.sh        # Remote URLs
-│   │   ├── common.sh      # Core utility functions
-│   │   ├── config_env.sh  # Config persistence
-│   │   └── package_list.sh # App package lists
-│   ├── features/          # One file = one feature (18 scripts)
-│   ├── orchestrator.sh    # Pipeline orchestrator
-│   ├── pipelines/         # Pipeline definition files
-│   ├── customize.sh       # Installer script
-│   ├── service.sh         # Boot-time service (late_start)
-│   ├── boot-completed.sh  # KernelSU/APatch post-boot
-│   ├── uninstall.sh       # Clean removal
-│   ├── action.sh          # Action button wrapper
-│   ├── rka/               # Remote Key Attestation
-│   └── webroot/           # WebUI source (Vite-bundled)
-│       ├── config.json
-│       ├── index.html
-│       ├── css/app.css
-│       ├── js/            # 21 TypeScript modules
-│       ├── json/          # Runtime data (JSON)
-│       ├── lang/          # Translation files
-│       ├── assets/        # Material Icons CSS
-│       └── common/        # WebUI-triggered scripts
-├── Module/                # Build output (gitignored)
-├── docs/                  # Documentation
-├── changelog.md
-├── README.md
-├── vite.config.js
-└── package.json
+service.sh         → immediate ro.* property resets (apply_boot_props)
+                   → exits early
+boot-completed.sh  → apply_boot_hardening (settings put, resetprop --delete)
+                   → set module description
 ```
 
-## Execution Flow
-
-### Action Button
+### Magisk
 ```
-action.sh
-  → orchestrator.sh
-    → reads pipeline file
-    → runs each feature script sequentially
-    → optional features marked with `?`
-```
-
-### WebUI Button
-```
-WebUI button click
-  → bridge detection (window.ksu.exec)
-  → spawns feature script
-  → stdout/stderr → dialog + history log
+service.sh         → immediate ro.* property resets
+                   → polls sys.boot_completed
+                   → apply_boot_hardening, hide recovery folders
+                   → block ROM spoof engines (background)
+                   → delayed re-spoof after 120s
+                   → hourly suspicious props re-clean loop
 ```
 
-### Boot (KernelSU / APatch)
+### Post-fs-data (all root solutions)
 ```
-service.sh           → immediate ro.* property resets
-                     → exits early
-boot-completed.sh    → apply_boot_hardening()
-                     → override.description
+post-fs-data.sh    → resolve_conflicts() — rename conflicting module scripts
+                     to .bak before they can execute at boot
 ```
 
-### Boot (Magisk)
+## Pipeline System
+
+Named pipelines (text files in `src/pipelines/`) define ordered steps:
+
 ```
-service.sh           → immediate ro.* property resets
-                     → poll sys.boot_completed
-                     → apply_boot_hardening()
-                     → GMS kill, recovery hiding
-                     → delayed re-spoof after 120s
+full_integrity:  kill_play_store → target → security_patch → keybox → pif?
+root_hide:       hma → zygisk_next?
 ```
 
-## Script Contracts
+Each line is a feature script. `?` suffix marks optional steps. Any failure aborts the pipeline.
 
-### exit vs return
+## WebUI → Shell Bridge
 
-| Context | Use |
-|---|---|
-| `features/*.sh` (subprocess) | `exit` |
-| `service.sh`, `boot-completed.sh` | `exit` |
-| `customize.sh`, `uninstall.sh` (sourced) | `return` |
-| `lib/*.sh` (sourced) | Never call `exit`/`return` at top level |
+The WebUI (TypeScript, Vite-bundled) communicates with the shell via `window.ksu.exec`:
+- KernelSU/APatch: native bridge (`window.ksu.exec`, `window.ksu.spawn`)
+- Development: mock bridge with realistic test data
 
-### Feature Script Pattern
-
-```sh
-#!/system/bin/sh
-set -e
-MODDIR=${0%/*}
-. "$MODDIR/../lib/common.sh"
-. "$MODDIR/../lib/paths.sh"
-
-log "FEATURE" "Start"
-# ... one responsibility, idempotent ...
-log "FEATURE" "Finish"
-exit 0
-```
+Config reads/writes go through the same persistence layer as shell scripts.
 
 ## Config Persistence
 
 Dual-layer approach:
-- **KernelSU**: `ksud module config get/set`
-- **Magisk/APatch**: flat files in `/data/adb/Specter/config/*.val`
+- **KernelSU**: `ksud module config get/set` (native)
+- **Magisk/APatch**: flat files in `/data/adb/Specter/config/<key>.val`
 
-WebUI mirrors this via shell `exec()` with a debounce-based flush system for batch writes.
+Both layers expose the same `cfg_get`/`cfg_set` API. The WebUI mirrors this via shell exec with debounced batch writes.
 
-## WebUI Architecture
+## Directory Structure
 
-The WebUI is written in **TypeScript with strict mode** (`strict: true`). Key modules:
-
-| Module | Purpose |
-|---|---|
-| `bridge.ts` | Bridge detection (ksu.exec) and script spawning |
-| `cfg.ts` | Config persistence with debounce flushing |
-| `device.ts` | Device info and keybox status refresh |
-| `theme.ts` | Material 3 theme engine (Monet + presets) |
-| `i18n.ts` | Async translation loader |
-| `terminal.ts` | Live terminal output for dev mode |
-
-## Build Process
-
-```bash
-npm run build
+```
+specter/
+├── src/lib/           # 5 shared shell libraries
+│   ├── common.sh      # Core functions (log, download, prop hardening, conflicts)
+│   ├── config_env.sh  # Config persistence (ksud + file fallback)
+│   ├── paths.sh       # Path constants
+│   ├── urls.sh        # Remote URL constants
+│   └── package_list.sh # App package lists
+├── src/features/      # 16 feature scripts (one file = one feature)
+├── src/pipelines/     # 2 pipeline definitions
+├── src/webroot/       # WebUI (27 TypeScript modules + HTML + CSS)
+├── src/rka/           # Remote Key Attestation (pure awk JSON library)
+├── src/orchestrator.sh # Pipeline runner
+├── src/service.sh     # Late-boot service
+├── src/boot-completed.sh # KernelSU/APatch post-boot
+├── src/customize.sh   # Installer wizard
+├── src/uninstall.sh   # Clean removal
+├── src/action.sh      # Action button entry point
+└── vite.config.js     # Vite config: root=src/webroot, outDir=Module/webroot
 ```
 
-This runs:
-1. `vite build` — bundles WebUI into `Module/webroot/`
-2. Copy shell scripts, libs, features, pipelines to `Module/`
-3. Zip `Module/` → `module.zip`
+## Key Patterns
+
+- **Dual root detection** — `$KSU` flag for KernelSU/APatch vs Magisk detection
+- **set -e everywhere** — all executable scripts fail fast, library scripts don't use it
+- **Idempotent features** — every feature script is safe to run multiple times
+- **Data-driven conflicts** — registry-based with one line per module, no hardcoded case blocks
+- **Shuffled-base64** — keybox payloads are shuffled-base64 encoded, decoded via `tr` + `base64 -d`

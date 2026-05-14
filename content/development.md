@@ -1,19 +1,15 @@
 ---
-title: Development Guide
-description: How to develop and contribute to Specter
+title: Development
+description: Build, develop, and contribute to Specter
 ---
 
-## Quick Reference
+## Prerequisites
 
-| Area | Files | Lines |
-|---|---|---|
-| `src/lib/` | 5 shared libraries | ~415 total |
-| `src/features/` | 18 feature scripts | Varies |
-| `src/webroot/js/` | 21 TypeScript modules | ~2300 total |
-| `src/webroot/css/app.css` | 1 stylesheet | ~790 |
-| `src/webroot/index.html` | 1 HTML page | ~460 |
+- Node.js >= 20, npm >= 9
+- TypeScript knowledge for WebUI changes
+- Shell scripting knowledge for feature/lib changes
 
-## Development Setup
+## Setup
 
 ```bash
 git clone https://github.com/dpejoh/specter
@@ -21,65 +17,31 @@ cd specter
 npm ci
 ```
 
-Requirements: Node.js >= 20, npm >= 9.
+## Commands
 
-## WebUI Development
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Vite dev server with hot-reload for WebUI |
+| `npm run build` | Vite build → copy module assets → zip module.zip |
+| `npx tsc --noEmit` | TypeScript strict type check |
+| `find src/ -name '*.sh' -exec shellcheck {} +` | Lint shell scripts |
 
-For hot-reload during WebUI development:
+## Source Rules
 
-```bash
-npm run dev
-```
+- Edit only files in `src/` — never `Module/` or `module/`
+- All executable scripts use `set -e`
+- Library scripts (`lib/*.sh`) never call `exit` or `return` at top level
+- Never use `su -c` in feature scripts
+- Never hardcode `/data/adb/modules/Specter` — use `$MODDIR`
+- The WebUI is TypeScript; edit `.ts` files in `src/webroot/js/`, not `.js` files
 
-This starts Vite's dev server. Edit files in `src/webroot/` and changes reflect instantly.
+## Boot Safety
 
-## Building
+`service.sh` and `boot-completed.sh` run in critical boot phases. Every `resetprop` call must use `resetprop_if_diff` (which has `2>/dev/null || true` guards). Never call `apply_prop_hardening()`, `check_prop()`, `disable_rom_spoof_engines()`, or `persistprop()` from boot scripts — a single unguarded failure with `set -e` can cause a bootloop.
 
-```bash
-npm run build
-```
+## Adding a Feature
 
-Output: `module.zip` — flashable Magisk/KernelSU/APatch module.
-
-## Type Checking
-
-```bash
-npx tsc --noEmit
-```
-
-The WebUI is strict TypeScript (`strict: true`). Always run the type checker before committing.
-
-## Shell Script Linting
-
-```bash
-find src/ -name '*.sh' -exec shellcheck {} +
-```
-
-## Pipeline System
-
-Pipelines are text files in `src/pipelines/` listing feature scripts to run:
-
-```
-# pipelines/full_integrity
-gms.sh
-target.sh
-security_patch.sh
-keybox.sh
-pif.sh?
-```
-
-- `?` suffix = optional (skipped if file missing)
-- Any script exiting non-zero **aborts** the pipeline
-
-## Adding a New Feature
-
-1. Create a new file in `src/features/<name>.sh`
-2. Follow the feature script contract (`set -e`, `MODDIR`, sourcing, `exit 0`)
-3. Add it to a pipeline in `src/pipelines/`
-4. Add a WebUI button in `src/webroot/index.html` with `data-script="<name>.sh"`
-
-## Adding a Translation
-
-1. Edit `src/webroot/lang/source/string.json` with the new English string
-2. Tag the string with a `data-i18n` attribute in HTML
-3. Submit translations (ar, es, ru, zh)
+1. Create `src/features/<name>.sh` following the script contract (`set -e`, `MODDIR`, source lib, `exit 0`)
+2. Add a config toggle with default value
+3. Add a WebUI button in `src/webroot/index.html` with `data-script="<name>.sh"`
+4. Add to a pipeline in `src/pipelines/` if it should run automatically
