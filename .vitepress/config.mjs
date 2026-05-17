@@ -8,6 +8,9 @@ export default defineConfig({
   head: [
     ["link", { rel: "icon", href: "/specter-web/favicon.svg", type: "image/svg+xml" }],
   ],
+  vite: {
+    publicDir: ".vitepress/public",
+  },
   themeConfig: {
     logo: "/ghost.svg",
     nav: [
